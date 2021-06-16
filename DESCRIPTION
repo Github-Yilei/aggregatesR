@@ -19,3 +19,5 @@ Imports:
     vegan
 Depends: 
     R (>= 3.50)
+URL: https://github.com/Github-Yilei/aggregatesR
+BugReports: https://github.com/Github-Yilei/aggregatesR/issues
