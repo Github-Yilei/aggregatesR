@@ -33,7 +33,18 @@ devtools::install_github("Github-Yilei/aggregatesR")
 
 This is a basic example which shows you how to solve a common problem:
 
+### draw_axis_line()
+
 ```{r example}
 library(aggregatesR)
-## basic example code
+library(ggplot2)
+p <- draw_axis_line(20, 4)
+p + geom_point(aes(x =1, y =1))
 ```
+
+### set_aspera_fq()
+
+```{r, echo=FALSE} 
+knitr::include_graphics('man/figures/set_aspera_fq.png')
+```
+

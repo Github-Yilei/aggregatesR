@@ -5,11 +5,11 @@
 #' @description The url of the source code is:
 #' @description \url{https://www.statmethods.net/RiA/wmc.txt}
 #'
-#' @param formula
-#' @param data
-#' @param exact
-#' @param sort
-#' @param method
+#' @param formula formula
+#' @param data data frame
+#' @param exact exact test
+#' @param sort sort
+#' @param method method
 #' @importFrom stats wilcox.test aggregate
 #' @return Nonparametric pairwise multiple comparisons using the Wilcoxon Signed Rank Test,
 #' and probability values are adjusted using the p.adjust function.

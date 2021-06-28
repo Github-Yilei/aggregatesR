@@ -16,7 +16,9 @@ Imports:
     plyr,
     stats,
     picante,
-    vegan
+    vegan,
+    edgeR,
+    ggtern
 Depends: 
     R (>= 3.50)
 URL: https://github.com/Github-Yilei/aggregatesR

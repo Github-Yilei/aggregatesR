@@ -2,8 +2,8 @@
 #' @description we want to determine the significance levels of the p-value by
 #' this function
 #' @param data matrix
-#' @param sig.level
-#' @param mark
+#' @param sig.level significant level
+#' @param mark marked with '*'
 #'
 #' @return return statistical significance mark
 #' @export
