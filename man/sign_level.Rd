@@ -13,7 +13,9 @@ sign_level(
 \arguments{
 \item{data}{matrix}
 
-\item{mark}{}
+\item{sig.level}{significant level}
+
+\item{mark}{marked with '*'}
 }
 \value{
 return statistical significance mark

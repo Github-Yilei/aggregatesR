@@ -6,6 +6,17 @@
 \usage{
 wmc(formula, data, exact = FALSE, sort = TRUE, method = "holm")
 }
+\arguments{
+\item{formula}{formula}
+
+\item{data}{data frame}
+
+\item{exact}{exact test}
+
+\item{sort}{sort}
+
+\item{method}{method}
+}
 \value{
 Nonparametric pairwise multiple comparisons using the Wilcoxon Signed Rank Test,
 and probability values are adjusted using the p.adjust function.
