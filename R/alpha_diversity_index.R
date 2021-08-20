@@ -6,9 +6,8 @@
 #' @param tree A phylo tree object
 #' @param base The logarithmic base of the formula
 #'
-#' @return Calculate Alpha Diversity Index by OTUs:
-#' Richness, Chao1, ACE, Shannon, Simpson, Pielou,
-#' goods_coverage, Pedigree diversity
+#' @return Calculate Alpha Diversity Index by OTUs: Richness, Chao1, ACE, Shannon, Simpson, Pielou,
+#' goods_coverage, Pedigree diversity. Functions also estimate the standard errors(se.chao1, se.ACE) with vegan package.
 #'
 #' @importFrom picante pd
 #' @importFrom vegan diversity estimateR
