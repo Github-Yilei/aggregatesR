@@ -48,3 +48,16 @@ p + geom_point(aes(x =1, y =1))
 knitr::include_graphics('man/figures/set_aspera_fq.png')
 ```
 
+
+### geom_flat_violin
+
+```{r, echo=TRUE} 
+library(ggplot2)
+library(aggregatesR)
+
+ggplot(ToothGrowth, aes(x = supp, y = len))  +
+    geom_flat_violin(position = position_nudge(x = 0.3)) +
+    geom_jitter(width=.1) +
+    geom_boxplot(width = 0.2, position = position_nudge(x = 0.2)) +
+    coord_flip() + theme_bw()
+```

@@ -37,3 +37,18 @@ p + geom_point(aes(x =1, y =1))
 ### set\_aspera\_fq()
 
 <img src="man/figures/set_aspera_fq.png" width="100%" />
+
+### geom\_flat\_violin
+
+``` r
+library(ggplot2)
+library(aggregatesR)
+
+ggplot(ToothGrowth, aes(x = supp, y = len))  +
+    geom_flat_violin(position = position_nudge(x = 0.3)) +
+    geom_jitter(width=.1) +
+    geom_boxplot(width = 0.2, position = position_nudge(x = 0.2)) +
+    coord_flip() + theme_bw()
+```
+
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
