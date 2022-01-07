@@ -14,9 +14,8 @@ alpha_diversity_index(x, tree = NULL, base = exp(1))
 \item{base}{The logarithmic base of the formula}
 }
 \value{
-Calculate Alpha Diversity Index by OTUs:
-Richness, Chao1, ACE, Shannon, Simpson, Pielou,
-goods_coverage, Pedigree diversity
+Calculate Alpha Diversity Index by OTUs: Richness, Chao1, ACE, Shannon, Simpson, Pielou,
+goods_coverage, Pedigree diversity. Functions also estimate the standard errors(se.chao1, se.ACE) with vegan package.
 }
 \description{
 The source code from the url:

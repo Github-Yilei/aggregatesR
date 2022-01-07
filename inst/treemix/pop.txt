@@ -1,0 +1,11 @@
+LR
+CR
+DMD
+JMD
+MMD
+GMD
+WKQ
+NKQ
+GKQ
+HKQ
+outgroup
