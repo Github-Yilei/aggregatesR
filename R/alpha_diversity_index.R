@@ -31,7 +31,8 @@ alpha_diversity_index <- function(x, tree = NULL, base = exp(1)) {
     Pd <- t(Pd)
     result <- rbind(result, Pd)
   }
-  result
+  result <- as.data.frame(t(result))
+  return(result)
 }
 
 
