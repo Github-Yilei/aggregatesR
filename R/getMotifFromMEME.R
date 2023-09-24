@@ -1,200 +1,166 @@
 #' @name getMotifFromMEME
-#' @author Xiang LI <lixiang117423@@foxmail.com>
 #'
-#' @title Extract and Visualize Motif Information from MEME Software
+#' @title Extract Motif Information from MEME Software.
 #' @description
 #' \code{getMotifFromMEME} Extract motif information from the MEME software results.
 #'
-#' @param data A txt file from MEME software.
-#' @param format The result format from MEME, txt or xml.
+#' @param data A txt or xml file from MEME software.
+#' @param format txt or xml.
 #'
 #' @importFrom magrittr %>%
+#' @importFrom stringr str_pad
+#' @importFrom dplyr select mutate
 #' @importFrom utils read.table
-#' @importFrom stringr str_sub str_split
+#' @importFrom tidyr pivot_longer unite
 #' @importFrom XML xmlParse xmlRoot xmlSize xmlToList
-#' @importFrom dplyr select filter mutate
+
+
 #'
 #' @examples
-#' filepath <- system.file("examples", "meme.txt", package = "ggmotif")
-#' motif.info <- getMotifFromMEME(data = filepath, format = "txt")
 #'
-#' filepath <- system.file("examples", "meme.xml", package = "ggmotif")
-#' motif.info <- getMotifFromMEME(data = filepath, format = "xml")
+#' filepath <- system.file("examples", "meme.txt", package = "aggregatesR")
+#' file <- getMotifFromMEME(data = filepath, format = "txt")
+#' motif_seq <- getMotifFromMEME(file, format = "txt")
+#'
+#' filepath <- system.file("examples", "meme.xml", package = "aggregatesR")
+#' file <- getMotifFromMEME(data = filepath, format = "xml")
+#' gene_info <- getMotifFromMEME(file, format = "xml")
+#'
+#'
 #' @export
 #'
-#' @return Return a datafram
-utils::globalVariables(c(
-  "V1", "five", "end.sym", "row.num", "nchar.1", "nchar.2",
-  "seq.id", "position", "width", "input.seq.id", "motif_id",
-  "start.position", "end.position", "start", "end", "y", "Genes",
-  "Motif", "x.min", "x.max", "y.min", "y.max", "."
-))
+
 
 getMotifFromMEME <- function(data, format = "txt") {
   if (format == "txt") {
-    df <- read.table(data, sep = ",") %>%
-      dplyr::rename(raw = V1)
-    
-    df.temp <- df %>%
-      dplyr::mutate(
-        row.num = rownames(.),
-        nchar.1 = nchar(raw),
-        nchar.2 = 16,
-        start = nchar.1 - nchar.2,
-        end = nchar.1
-      ) %>%
-      dplyr::mutate(
-        five = stringr::str_sub(raw, start, end),
-        end.sym = stringr::str_sub(raw, 1, 2)
-      ) %>%
-      dplyr::filter(five == " in BLOCKS format" | end.sym == "//") %>%
-      dplyr::mutate(row.num = ifelse(raw == "//", as.numeric(row.num) - 1, as.numeric(row.num) + 3)) %>%
-      dplyr::select(1, 2)
-    
-    df.motif <- NULL
-    
-    for (i in seq(1, nrow(df.temp), 2)) {
-      start.row <- df.temp$row.num[i]
-      
-      end.row <- df.temp$row.num[i + 1]
-      
-      df.motif.temp <- df[start.row:end.row, ] %>%
-        as.data.frame()
-      
-      colnames(df.motif.temp) <- "raw"
-      
-      df.motif.temp <- df.motif.temp %>%
-        dplyr::mutate(
-          motif.num = paste0("Motif.", (i + 1) / 2),
-          input.seq.name = "",
-          input.seq.motif = ""
-        )
-      
-      for (j in 1:nrow(df.motif.temp)) {
-        df.motif.temp$input.seq.name[j] <- stringr::str_split(df.motif.temp$raw[j], " ")[[1]][1]
-        df.motif.temp$input.seq.motif[j] <- stringr::str_split(df.motif.temp$raw[j], " ")[[1]][(length(stringr::str_split(df.motif.temp$raw[j], " ")[[1]]) - 3)]
-      }
-      
-      df.motif <- rbind(df.motif, df.motif.temp)
+    df <- read.table(data, sep = ",") %>% dplyr::rename(raw = V1)
+
+    motif_seq_start <- which(grepl("Motif [0-9]* in BLOCKS format", df$raw)) + 3
+    motif_seq_end <- which(grepl("^//$", df$raw)) - 1
+
+    motif_seq <- NULL
+    for (i in c(1:length(motif_seq_start))){
+      tmp <- df[motif_seq_start[i]:motif_seq_end[i], ] %>% as.data.frame()
+      colnames(tmp) <- "raw"
+
+      tmp %>%
+        separate(col = raw, sep = " *\\(.*\\) ", into = c("seq_name", "remaind"), remove = FALSE) %>%
+        separate(col = remaind, into = c("motif_seq"), sep = "  ", extra = "drop") %>%
+        mutate(motif_num = paste0("Motif_", i)) -> tmp
+
+      motif_seq <- rbind(motif_seq, tmp)
     }
-    
-    return(df.motif)
+
+    return(motif_seq )
+
   } else {
     df <- XML::xmlParse(file = data)
-    
     df.root <- XML::xmlRoot(df)
-    
-    # 提取输入序列汇总信息
-    seq.inf <- df.root[[1]]
-    
-    df.seq.info <- NULL
-    
-    for (i in 2:(XML::xmlSize(seq.inf) - 1)) {
-      df.seq.info.temp <- seq.inf[[i]] %>%
-        XML::xmlToList() %>%
-        as.data.frame() %>%
-        t() %>%
-        as.data.frame()
-      df.seq.info <- rbind(df.seq.info, df.seq.info.temp)
-    }
-    
-    colnames(df.seq.info)[1:2] <- c("seq.id", "input.seq.id")
-    
-    
-    # 提取motif信息
-    motif.seq <- df.root[[3]]
-    
-    df.motif.info <- NULL
-    
-    for (i in 1:XML::xmlSize(motif.seq)) {
-      temp1 <- motif.seq[[i]] %>%
-        XML::xmlToList()
-      
-      df.motif.info <- temp1[[".attrs"]] %>%
-        as.data.frame() %>%
-        t() %>%
-        as.data.frame() %>%
-        rbind(df.motif.info)
-    }
-    
-    colnames(df.motif.info)[1:2] <- c("motif_id", "motif_name")
-    
-    # 提取基因序列上的motif信息
-    gene.motif <- df.root[[4]]
-    
-    df.gene.motif.info <- NULL
-    
-    for (i in 1:XML::xmlSize(gene.motif)) {
-      temp2 <- gene.motif[[i]] %>%
-        XML::xmlToList()
-      
-      if (is.character(temp2)) {
-        next
+
+    # gene motif data
+    gene_motif <- df.root[[4]] %>%
+      XML::xmlToList() %>% unlist(recursive = FALSE)
+
+    gene_motif <- do.call(rbind, lapply(gene_motif, data.frame))
+    gene_motif$V2 <- rownames(gene_motif)
+    colnames(gene_motif) <- c("V1", "V2")
+    gene_motif$V2 <- gsub("scanned_sites\\..*\\.", "", gene_motif$V2)
+    gene_motif$V2 <- gsub("[0-9]*", "", gene_motif$V2)
+
+    ## seq index
+    motif_seq_start <- which(grepl("sequence_", gene_motif$V2))
+    motif_seq_end <- which(grepl("num_sites", gene_motif$V2))
+
+    gene_info <- NULL
+    for (i in c(1: length(motif_seq_start))){
+      if (i == 1){
+        tmp_motif <- gene_motif[1: motif_seq_start[i]- 1, ] %>%
+          group_by(V2) %>%
+          mutate(index = row_number()) %>%
+          pivot_wider(names_from = V2, values_from = V1) %>%
+          select(-index)
+
+        tmp_seq <- gene_motif[motif_seq_start[i]:motif_seq_end[i], ] %>%
+          pivot_wider(names_from = V2, values_from = V1) %>%
+          rename(seq_pvalue = pvalue)
+
+        gene_info <- cbind(tmp_motif, tmp_seq)
       } else {
-        df.gene.motif.info.temp <- NULL
-        
-        for (j in 1:(length(temp2) - 1)) {
-          df.gene.motif.info.temp.2 <- temp2[[j]] %>%
-            as.data.frame() %>%
-            t() %>%
-            as.data.frame()
-          df.gene.motif.info.temp <- rbind(df.gene.motif.info.temp, df.gene.motif.info.temp.2)
-        }
-        
-        df.gene.motif.info <- df.gene.motif.info.temp %>%
-          dplyr::mutate(
-            seq.id = temp2[[".attrs"]][[1]],
-            p.value.seq = temp2[[".attrs"]][[2]],
-            num_site4seq = temp2[[".attrs"]][[3]]
-          ) %>%
-          rbind(df.gene.motif.info)
+        tmp_motif <- gene_motif[(motif_seq_end[i-1] + 1): (motif_seq_start[i]- 1), ] %>%
+          group_by(V2) %>%
+          mutate(index = row_number()) %>%
+          pivot_wider(names_from = V2, values_from = V1) %>%
+          select(-index)
+
+        tmp_seq <- gene_motif[motif_seq_start[i]:motif_seq_end[i], ] %>%
+          pivot_wider(names_from = V2, values_from = V1) %>%
+          rename(seq_pvalue = pvalue)
+
+        tmp <- cbind(tmp_motif, tmp_seq)
+        gene_info <- rbind(gene_info, tmp)
       }
     }
-    
-    df.gene.motif.info <- df.gene.motif.info %>%
-      dplyr::select(
-        "seq.id", "num_site4seq", "p.value.seq", "motif_id",
-        "strand", "position", "pvalue"
-      )
-    
-    
-    all.info <- df.gene.motif.info %>%
-      merge(df.motif.info, by = "motif_id") %>%
-      merge(df.seq.info[, 1:3], by = "seq.id") %>%
-      dplyr::select(-seq.id)
-    
-    col.name <- colnames(all.info)
-    
-    all.info.final <- all.info %>%
-      dplyr::select("input.seq.id", "length", col.name[1:16]) %>%
-      dplyr::mutate(
-        position = as.numeric(position),
-        width = as.numeric(width)
-      ) %>%
-      dplyr::mutate(
-        start.position = position + 1,
-        end.position = position + width
-      ) 
-      # %>%
-      # dplyr::select(
-      #   "input.seq.id",
-      #   "length",
-      #   "num_site4seq",
-      #   "p.value.seq",
-      #   "motif_id",
-      #   "position",
-      #   "width",
-      #   "start.position",
-      #   "end.position",
-      #   "pvalue",
-      #   "ic",
-      #   "re",
-      #   "llr",
-      #   "p_value",
-      #   "e_value",
-      #   "bayes_threshold"
-      # )
-    return(all.info.final)
+
+    tmp <- df.root[[1]] %>% XML::xmlToList()
+    seq_info <- tmp[2:(XML::xmlSize(tmp) - 1)] %>% bind_rows() %>%
+      select(-alphabet_array) %>%
+      na.omit() %>%
+      rename(sequence_id = id) %>%
+      rename(seq_name = name)
+
+
+    motif_info <- df.root[[3]] %>%
+      XML::xmlToList() %>% sapply("[[", ".attrs") %>%
+      t() %>% as.data.frame() %>%
+      rename(motif_id = id)
+
+    gene_info <- merge(gene_info, seq_info, by = 'sequence_id')
+
+    gene_info <- merge(gene_info, motif_info, by = 'motif_id') %>%
+      dplyr::select(!c("sequence_id", "num_sites", "weight",
+                       "name", "alt", "sites", "elapsed_time"))
+
+    return(gene_info)
+
   }
 }
+
+
+
+#' @name combinedMotifseq
+#'
+#' @description Combine all motif seq to 1.
+#' @param data motif_seq from \code{getMotifFromMEME}.
+#' @return A single line of all motifs.
+#'
+#' @examples
+#' data <- paste0(file, "meme.txt")
+#' motif_seq <- getMotifFromMEME(data = data, format = "txt")
+#' combined_seq <- combinedMotifseq(motif_seq)
+#'
+#'
+#' @export
+#'
+
+combinedMotifseq <- function(data){
+  df <- select(data, c("motif_seq", "motif_num")) %>%
+    group_by(motif_num) %>%
+    mutate(index = row_number()) %>%
+    pivot_wider(names_from = 'motif_num', values_from = 'motif_seq') %>%
+    select(-index)
+
+  combineSeq <- function(seq_cols){
+    seq_len = str_count(seq_cols)[!is.na(seq_cols)][1]
+    ifelse(is.na(seq_cols),
+           seq_cols[is.na(seq_cols)] <- stringr::str_pad("-", seq_len, "left", pad = "-"),
+           seq_cols)}
+
+  combinedSeq <- as.data.frame(apply(df, 2, function(x) combineSeq(x))) %>%
+    unite(col, sep = "", remove = TRUE)
+
+  return(combinedSeq)
+}
+
+
+
 
