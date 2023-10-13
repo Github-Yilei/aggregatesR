@@ -67,7 +67,7 @@ Lasso2plot <- function(mod, format = "cv"){
       mutate(lambda = mod$lambda[step + 1 ],
              dev.ratio = mod$dev.ratio[step + 1])  #  lambda not 0
 
-    p <- ggplot(gl_df, aes(x = step, y = estimate, group = coef, color= coef)) +
+    p <- ggplot(gl_df, aes(x = log(lambda), y = estimate, group = coef, color= coef)) +
       geom_line(size = 1.2)+
       guides(color = 'none') +
       geom_hline(yintercept = 0)+
@@ -75,7 +75,7 @@ Lasso2plot <- function(mod, format = "cv"){
       theme_bw() +
       theme(axis.text = element_text(size = 14),
             axis.title = element_text(size = 14))
-
+    scale_y_continuous(sec.axis = sec_axis( ~rescale(.,c(0,0.5)),name = "Categroy",labels=sprintf("%d%%",(0:5)*10)))
     return(p)
 
   }
