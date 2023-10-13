@@ -118,7 +118,7 @@ getMotifFromMEME <- function(data, format = "txt") {
 
     gene_info <- merge(gene_info, motif_info, by = 'motif_id') %>%
       dplyr::select(!c("sequence_id", "num_sites", "weight",
-                       "name", "alt", "sites", "elapsed_time"))
+                       "name", "sites", "elapsed_time"))
 
     return(gene_info)
 
