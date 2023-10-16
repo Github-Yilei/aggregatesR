@@ -62,9 +62,8 @@ Lasso2plot <- function(mod, format = "cv"){
                    names_to = "step",
                    names_transform = list(step = parse_number),
                    values_to = "estimate") %>%
-      #mutate(step = step)  %>%   #  lambda not 0
+      #mutate(step = step)  %>%   ## lambda not start at 0 0
       group_by(step) %>%
-    # lambda not start at 0
       mutate(lambda = mod$lambda[step + 1 ],
              dev.ratio = mod$dev.ratio[step + 1])  %>% 
       filter(coef != '(Intercept)') 
