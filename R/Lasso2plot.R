@@ -64,8 +64,10 @@ Lasso2plot <- function(mod, format = "cv"){
                    values_to = "estimate") %>%
       #mutate(step = step)  %>%   #  lambda not 0
       group_by(step) %>%
+    # lambda not start at 0
       mutate(lambda = mod$lambda[step + 1 ],
-             dev.ratio = mod$dev.ratio[step + 1])  #  lambda not 0
+             dev.ratio = mod$dev.ratio[step + 1])  %>% 
+      filter(coef != '(Intercept)') 
 
     p <- ggplot(gl_df, aes(x = log(lambda), y = estimate, group = coef, color= coef)) +
       geom_line(size = 1.2)+
