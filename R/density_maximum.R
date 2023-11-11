@@ -5,9 +5,9 @@
 #' @return The peak of distribution plot
 #' @export
 #'
-density_maximum <- function(data, v) {
+density_maximum <- function(data) {
   
-  max_idx <- which.max(density(data$v)$y)
-  max_x <- density(data$v)$x[max_idx]
-
+  max_idx <- which.max(density(data)$y)
+  max_x <- density(data)$x[max_idx]
+  
 }
