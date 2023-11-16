@@ -14,8 +14,10 @@
 #' @examples path <- system.file("extdata", "chr.tsv", package = "aggregatesR" )
 #' @examples mydf <- read.delim(path, header = TRUE, sep = "\t")
 #' @examples freqtable <- tapply(mydf$value, mydf$group, function(x) binFreqTable(x, step = 1000000))
-#'
-#'
+#' @examples for (id in attributes(freqtable)$dimnames[[1]]){
+#' @examples           freqtable[[id]]$group <- id }
+#' @examples freqtable <- bind_rows(freqtable)
+#' 
 binFreqTable <- function(x, step) {
   bins = seq(0, ceiling(max(x)/step)*step, by = step)
   freq = hist(x, breaks=bins, include.lowest = TRUE, plot = FALSE)
